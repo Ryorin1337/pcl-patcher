@@ -38,22 +38,7 @@ patch.exe "Plain Craft Launcher 2.exe" patched.exe
 build.cmd
 ```
 
-`build.cmd` 会编译 `src\patch.cs` 并输出 `patch.exe`，然后编译 `src\verify.cs` 生成 `verify.exe`（用于打印补丁后关键方法的 IL 供人工核对）。
-
-## 验证
-
-对打完补丁的 exe 运行：
-
-```cmd
-verify.exe patched.exe
-```
-
-会输出：
-
-- `RestrictMcDownload` 常量值
-- `LoaderInit` 的 IL（应看到 `ldsfld PCL.ModDownload::DlClientListLoader`）
-- `ModpackInstall()` 的文件选择 IL
-- 新增 `ModpackInstallDispatch` 的完整分发 IL
+`build.cmd` 会编译 `src\patch.cs` 并输出 `patch.exe`。
 
 ## 免责声明
 

@@ -11,5 +11,4 @@ if not exist dnlib.dll (
     exit /b 1
 )
 "%CSC%" /nologo /target:exe /out:patch.exe /r:dnlib.dll src\patch.cs || exit /b 1
-"%CSC%" /nologo /target:exe /out:verify.exe /r:dnlib.dll src\verify.cs || exit /b 1
-echo Build OK: patch.exe, verify.exe
+echo Build OK: patch.exe

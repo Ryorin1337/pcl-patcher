@@ -9,6 +9,19 @@ static class Patcher
 
     static void Main(string[] args)
     {
+        try
+        {
+            Run(args);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("FATAL: " + e);
+            Environment.Exit(1);
+        }
+    }
+
+    static void Run(string[] args)
+    {
         string src = args[0];
         string dst = args[1];
         mod = ModuleDefMD.Load(src);
@@ -146,9 +159,21 @@ static class Patcher
         ins.RemoveAt(start + 1);
         for (int j = 0; j < seq.Count; j++) ins.Insert(start + 1 + j, seq[j]);
 
+        // In dnlib, HandlerEnd == null means "the finally extends to the end of the method".
+        // We are appending code at the end, so the leave target would land INSIDE the
+        // protected region -> invalid IL -> InvalidProgramException at JIT time.
+        // Insert a real boundary NOP after endfinally and point the finally's HandlerEnd
+        // at it, so the appended return path sits outside the protected region.
+        Instruction endMarker = Instruction.Create(OpCodes.Nop);
+        ins.Add(endMarker);
         ins.Add(lout);
         ins.Add(Instruction.Create(OpCodes.Ret));
-        Console.WriteLine("[4] ModpackInstall dispatch restored");
+        foreach (ExceptionHandler eh in body.ExceptionHandlers)
+        {
+            if (eh.HandlerType == ExceptionHandlerType.Finally && eh.HandlerEnd == null)
+                eh.HandlerEnd = endMarker;
+        }
+        Console.WriteLine("[4] ModpackInstall dispatch restored (finally HandlerEnd fixed)");
     }
 
     static MethodDef CreateDispatch(TypeDef t, MethodDef orig)
